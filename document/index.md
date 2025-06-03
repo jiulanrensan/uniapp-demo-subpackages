@@ -1,0 +1,48 @@
+## 记录
+### 直接在vue文件中引入分包的组件，生成的index.json会自动处理路径，我需要处理componentPlaceholder
+1. 如何判断这是一个分包异步组件
+2. 如何在编译阶段拿到编译后的index.json
+
+### 分包组件结构如下
+```shell
+# subPackages/first
+- index.vue
+- utils.ts
+```
+在`index.vue`中引用了`utils.ts`，编译后目录结构和文件：
+```js
+// subPackages/first/index
+const index = require("../../index.js");
+wx.createPage(index._sfc_main);
+
+// subPackages/first/utils
+function print() {
+  console.log("first print");
+}
+exports.print = print;
+
+// /index
+// 直接引入分包的utils
+const subPackages_first_utils = require("./subPackages/first/utils.js");
+const common_vendor = require("./common/vendor.js");
+const _sfc_main = {
+  __name: "index",
+  setup(__props) {
+    common_vendor.onMounted(() => {
+      subPackages_first_utils.print();
+    });
+    return (_ctx, _cache) => {
+      return {};
+    };
+  }
+};
+exports._sfc_main = _sfc_main;
+```
+
+### 不在pages.json注册的路径，会被过滤掉
+1. 需要将没有注册路径的文件搬到dist
+
+
+## 参考文章
+https://juejin.cn/post/7343811070694047798
+https://juejin.cn/post/7315670922291953704
