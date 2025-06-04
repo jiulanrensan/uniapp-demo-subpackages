@@ -10,10 +10,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import first from '@/subPackages/first/index.vue'
 import hello from '@/pages/components/hello/index.vue'
+import {getGoods} from './goods'
 const title = ref('Hello')
+onMounted(() => {
+  const res = getGoods()
+  console.log('getGoods', res)
+})
 </script>
 
 <style>
