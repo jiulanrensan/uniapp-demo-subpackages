@@ -10,7 +10,9 @@
 				// 	}
 				// },
 				"componentPlaceholder": {
-					"first": "view"
+					"first": "view",
+					"second": "view",
+					"aaa": "view"
 				}
 			}
 		}
@@ -21,6 +23,10 @@
 			"pages" : [
 				{
 					"path" : "first/index",
+					"style" : { "navigationBarTitleText": "我是子包页面"}
+				},
+				{
+					"path" : "second/index",
 					"style" : { "navigationBarTitleText": "我是子包页面"}
 				},
 				{

@@ -1,6 +1,5 @@
 <template>
-  <!---->
-  aaa
+  <view>bbb</view>
 </template>
 <script setup>
 import {print} from './utils'

@@ -1,17 +1,21 @@
 <template>
   <view class="content">
     <first />
+    <aaa />
     <hello />
     <image class="logo" src="/static/logo.png" />
     <view class="text-area">
       <text class="title">{{ title }}</text>
     </view>
+    <second />
   </view>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import first from '@/subPackages/first/index.vue'
+import second from '@/subPackages/second/index.vue'
+import aaa from '@/subPackages/aaa/empty.vue'
 import hello from '@/pages/components/hello/index.vue'
 import {getGoods} from './goods'
 const title = ref('Hello')

@@ -3,7 +3,8 @@
 1. 如何判断这是一个分包异步组件
 2. 如何在编译阶段拿到编译后的index.json
 
-### 分包组件结构如下
+### 引用分包组件情况
+#### 主包页面引入分包组件
 ```shell
 # subPackages/first
 - index.vue
@@ -39,7 +40,20 @@ const _sfc_main = {
 exports._sfc_main = _sfc_main;
 ```
 
-### 不在pages.json注册的路径，会被过滤掉
+#### 分包组件引主包组件
+略
+
+#### 分包组件引分包组件
+可以正常打包，也类似主包引分包，会在主包有这样的引入:
+```js
+// 直接引入分包的utils
+const subPackages_first_utils = require("./subPackages/first/utils.js");
+```
+
+#### 主包组件引分包组件
+需要在主包组件上加`componentPlaceholder`
+
+### 不在pages.json注册的路径的文件，会被过滤掉
 1. 需要将没有注册路径的文件搬到dist
 
 

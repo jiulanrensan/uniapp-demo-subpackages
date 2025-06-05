@@ -1,12 +1,12 @@
 <template>
   <!--  -->
   <view class="container">
-    <text>First Subpackage</text>
-    <bbb />
+    <text>Third Subpackage</text>
+    <!-- <aaa /> -->
   </view>
 </template>
 <script setup>
-import bbb from '@/pages/components/bbb/index.vue'
+// import aaa from '@/subPackages/aaa/empty.vue'
 import {print} from './utils'
 import {onMounted} from 'vue'
 onMounted(() => {

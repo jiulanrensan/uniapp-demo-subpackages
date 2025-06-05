@@ -1,4 +1,7 @@
 <template>
   <view>hello</view>
+  <third />
 </template>
-<script></script>
+<script setup>
+import third from '@/subPackages/third/index.vue'
+</script>
