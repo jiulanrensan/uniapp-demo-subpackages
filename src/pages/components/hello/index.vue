@@ -3,5 +3,5 @@
   <third />
 </template>
 <script setup>
-import third from '@/subPackages/third/index.vue'
+import third from '@/subA/third/index.vue'
 </script>

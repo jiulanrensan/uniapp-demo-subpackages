@@ -13,9 +13,9 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import first from '@/subPackages/first/index.vue'
-import second from '@/subPackages/second/index.vue'
-import aaa from '@/subPackages/aaa/empty.vue'
+import first from '@/subA/first/index.vue'
+import second from '@/subA/second/index.vue'
+import aaa from '@/subA/aaa/empty.vue'
 import hello from '@/pages/components/hello/index.vue'
 import {getGoods} from './goods'
 const title = ref('Hello')

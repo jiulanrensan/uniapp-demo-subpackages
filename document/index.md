@@ -6,17 +6,17 @@
 ### 引用分包组件情况
 #### 主包页面引入分包组件
 ```shell
-# subPackages/first
+# subA/first
 - index.vue
 - utils.ts
 ```
 在`index.vue`中引用了`utils.ts`，编译后目录结构和文件：
 ```js
-// subPackages/first/index
+// subA/first/index
 const index = require("../../index.js");
 wx.createPage(index._sfc_main);
 
-// subPackages/first/utils
+// subA/first/utils
 function print() {
   console.log("first print");
 }
@@ -24,13 +24,13 @@ exports.print = print;
 
 // /index
 // 直接引入分包的utils
-const subPackages_first_utils = require("./subPackages/first/utils.js");
+const subA_first_utils = require("./subA/first/utils.js");
 const common_vendor = require("./common/vendor.js");
 const _sfc_main = {
   __name: "index",
   setup(__props) {
     common_vendor.onMounted(() => {
-      subPackages_first_utils.print();
+      subA_first_utils.print();
     });
     return (_ctx, _cache) => {
       return {};
@@ -47,7 +47,7 @@ exports._sfc_main = _sfc_main;
 可以正常打包，也类似主包引分包，会在主包有这样的引入:
 ```js
 // 直接引入分包的utils
-const subPackages_first_utils = require("./subPackages/first/utils.js");
+const subA_first_utils = require("./subA/first/utils.js");
 ```
 
 #### 主包组件引分包组件
