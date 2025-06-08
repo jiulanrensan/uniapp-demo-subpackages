@@ -18,16 +18,29 @@
 			"pages" : [
 				{
 					"path" : "first/index",
-					"style" : { "navigationBarTitleText": "我是子包页面"}
+					"style" : { "navigationBarTitleText": "我是first"}
 				},
 				{
 					"path" : "second/index",
-					"style" : { "navigationBarTitleText": "我是子包页面"}
+					"style" : { "navigationBarTitleText": "我是second"}
 				},
 				{
 					"path" : "aaa/empty",
-					"style" : { "navigationBarTitleText": "我是子包页面"}
+					"style" : { "navigationBarTitleText": "我是aaa"}
 				}
+			]
+		},
+		{
+			"root" : "subB",
+			"pages" : [
+				{
+					"path" : "share/index",
+					"style" : { "navigationBarTitleText": "我是share"}
+				},
+				{
+					"path" : "poster/index",
+					"style" : { "navigationBarTitleText": "我是poster"}
+				},
 			]
 		}
 	],

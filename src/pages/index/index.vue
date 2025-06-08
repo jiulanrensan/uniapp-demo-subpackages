@@ -8,6 +8,7 @@
       <text class="title">{{ title }}</text>
     </view>
     <second />
+    <share />
   </view>
 </template>
 
@@ -17,6 +18,7 @@ import first from '@/subA/first/index.vue'
 import second from '@/subA/second/index.vue'
 import aaa from '@/subA/aaa/empty.vue'
 import hello from '@/pages/components/hello/index.vue'
+import share from '@/subB/share/index.vue'
 import {getGoods} from './goods'
 const title = ref('Hello')
 onMounted(() => {
