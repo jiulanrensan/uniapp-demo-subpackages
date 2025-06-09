@@ -15,7 +15,7 @@ uniapp封装了一个vite插件，name为`uni:mp-pages-json`，这个插件是�
 2. 当前组件/页面与引入的组件不属于一个包
 
 #### 判断引入的组件是分包组件
-记录主包路径，非主包路径即分包组件
+先遍历pages.json，记录分包路径
 
 #### 判断引用的组件是否是当前包内的组件
 ```shell
@@ -50,4 +50,11 @@ uniapp封装了一个vite插件，name为`uni:mp-pages-json`，这个插件是�
 # subB/share/index
 # 引入分包A组件
 # ../../subA/aaa/empty
+```
+以`pages/components/hello/index`为例，引入组件路径为`../../../subA/third/index`
+可以这样判断
+```js
+const currentId = `pages/components/hello/index`
+const compPath = `../../../subA/third/index`
+const currentIdLen = currentId.split('/').length // 长度为4
 ```
