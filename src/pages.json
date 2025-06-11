@@ -4,11 +4,13 @@
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "uni-app",
+				// #ifdef MP-WEIXIN
 				"componentPlaceholder": {
 					"first": "view",
 					"second": "view",
 					"aaa": "view"
 				}
+				// #endif
 			}
 		}
 	],
