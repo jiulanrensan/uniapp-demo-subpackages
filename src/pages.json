@@ -44,6 +44,15 @@
 					"style" : { "navigationBarTitleText": "我是poster"}
 				},
 			]
+		},
+		{
+			"root" : "subPages",
+			"pages" : [
+				{
+					"path" : "index",
+					"style" : { "navigationBarTitleText": "subPages"}
+				}
+			]
 		}
 	],
 	"globalStyle": {

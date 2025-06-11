@@ -54,7 +54,9 @@ uniapp封装了一个vite插件，name为`uni:mp-pages-json`，这个插件是�
 以`pages/components/hello/index`为例，引入组件路径为`../../../subA/third/index`
 可以这样判断
 ```js
-const currentId = `pages/components/hello/index`
+// 先将`pages/components/hello/index`最后一级去掉，变为`pages/components/hello`
+const currentId = `pages/components/hello`
 const compPath = `../../../subA/third/index`
-const currentIdLen = currentId.split('/').length // 长度为4
+path.resolve(currentId, comPath) // 输出引入组件路径的绝对路径
+// 再判断是否是分包路径即可
 ```
