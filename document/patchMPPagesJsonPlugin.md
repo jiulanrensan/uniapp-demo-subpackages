@@ -10,7 +10,6 @@ uniapp封装了一个vite插件，name为`uni:mp-pages-json`，这个插件是�
 
 ### 什么情况需要添加`componentPlaceholder`属性
 同时满足以下两个条件：
-
 1. 引入的组件是分包组件
 2. 当前组件/页面与引入的组件不属于一个包
 
