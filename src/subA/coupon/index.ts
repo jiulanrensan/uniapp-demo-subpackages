@@ -1,3 +1,3 @@
-export function print() {
-  console.log('aaa print')
+export function getCoupon() {
+  console.log('getCoupon')
 }
