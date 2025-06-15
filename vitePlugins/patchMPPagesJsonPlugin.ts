@@ -48,11 +48,16 @@ function parseNormalJson(content: string, key: string, subPackageList: string[])
     Object.keys(usingComponents).forEach((componentName) => {
       // 引入的组件路径
       const componentPath = usingComponents[componentName]
-      console.log(`resolve`, key, componentPath)
-      const absoluteComponentPath = path.resolve(key, componentPath)
-      if (!isSubPackageComponent(absoluteComponentPath, subPackageList)) return
-      
-      const isSamePackage = absoluteComponentPath.startsWith(currentAbsolutePath)
+      const dirname = getDirname(key)
+      const absoluteComponentPath = path.resolve(dirname, componentPath)
+      // console.log(`resolve`, key, dirname, componentPath, absoluteComponentPath)
+      // 如果不是分包组件，则不处理
+      const { bool, subPackagePath } = hanldeIsSubPackageComponent(absoluteComponentPath, subPackageList)
+      if (!bool) return
+      // 如果当前组件/页面与引入的组件属于同一个包，则不处理
+      // const isSamePackage = absoluteComponentPath.startsWith(currentAbsolutePath)
+      const isSamePackage = handleIsSamePackage({ packagePath: subPackagePath, pathList: [absoluteComponentPath, currentAbsolutePath] })
+      // console.log(`isSamePackage`, absoluteComponentPath, currentAbsolutePath, isSamePackage)
       if (isSamePackage) return
       recordList.push(componentName)
     })
@@ -66,7 +71,7 @@ function parseNormalJson(content: string, key: string, subPackageList: string[])
         json.componentPlaceholder[componentName] = 'view'
       }
     })
-    console.log(`parseNormalJson`, json)
+    // console.log(`parseNormalJson`, key, json)
     return JSON.stringify(json)
   } catch (error) {
     console.error(`parseNormalJson Error parsing ${key}.json:`, error)
@@ -74,21 +79,41 @@ function parseNormalJson(content: string, key: string, subPackageList: string[])
   }
 }
 
+function getDirname(filePath: string) {
+  const list = filePath.split('/')
+  list.pop()
+  return list.join('/')
+}
+
+function handleIsSamePackage({packagePath, pathList}: {packagePath: string, pathList: string[]}) {
+  return pathList.every(path => path.startsWith(packagePath))
+}
+
 /**
  * 判断当前组件/页面是否在分包中
  */
-function isSubPackageComponent(path: string, subPackageList: string[]) {
-  return subPackageList.some(subPackagePath => {
-    const bool = path.startsWith(subPackagePath)
-    console.log(`isSubPackageComponent`, path, subPackagePath, bool)
+function hanldeIsSubPackageComponent(path: string, subPackageList: string[]) {
+  let isIn = false
+  let subPath = ''
+  subPackageList.some(subPackagePath => {
+    const bool = isIn = path.startsWith(subPackagePath)
+    if (bool) {
+      // 如果是分包组件，则记录分包路径
+      subPath = subPackagePath
+    }
+    // console.log(`isSubPackageComponent`, path, subPackagePath, bool)
     return bool
   })
+  return {
+    bool: isIn,
+    subPackagePath: subPath
+  }
 }
 let subPackageList: string[] | void = []
 function handleJson(content, key) {
   if (isAppJson(key)) {
     subPackageList = collectSubPackages(content)
-    console.log(`subPackageList`, subPackageList)
+    // console.log(`subPackageList`, subPackageList)
     return content
   }
   if (!subPackageList || !Array.isArray(subPackageList)) return content
@@ -107,7 +132,7 @@ export function patchMPPagesJsonPlugin(plugins: Plugin[]) {
     // }
     pagesJsonPlugin.generateBundle = async function () {
       findChangedJsonFiles().forEach((value, key) => {
-        console.log('uni:mp-pages-json', key);
+        // console.log('uni:mp-pages-json', key);
         /**
          * 会第一个处理app.json
          */
