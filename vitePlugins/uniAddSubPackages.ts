@@ -136,8 +136,12 @@ export function uniAddSubPackagesPlugin(): PluginOption {
        * 然后处理其他页面和组件的json
        * 不能保证Object.keys的顺序
        * app.json不需要重新处理，仅记录
+       * 热更新时不会有app.json
        */
-      handleJson((bundle[appJsonName] as OutputAsset).source as string, appJsonName)
+      const appJson = bundle[appJsonName]
+      if (appJson) {
+        handleJson((appJson as OutputAsset).source as string, appJsonName)
+      }
       Object.keys(bundle).forEach(fileName => {
         if (fileName.endsWith('.json') && fileName !== appJsonName) {
           const asset = bundle[fileName]
