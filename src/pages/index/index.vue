@@ -21,10 +21,12 @@ import hello from '@/pages/components/hello/index.vue'
 import share from '../../subB/share/index.vue'
 import {getGoods} from './goods'
 // const coupon = require.async('@/subA/coupon/index')
+import {getCoupon} from '@/subA/coupon/index'
+
 // console.log('coupon', coupon)
-// coupon.then((module: any) => {
-//   console.log('coupon module loaded', module)
-// })
+getCoupon.then((module: any) => {
+  console.log('coupon module loaded', module)
+})
 const title = ref('Hello')
 onMounted(() => {
   const res = getGoods()
