@@ -53,8 +53,16 @@ const subA_first_utils = require("./subA/first/utils.js");
 #### 主包组件引分包组件
 需要在主包组件上加`componentPlaceholder`
 
-### 不在pages.json注册的路径的文件，会被过滤掉
-1. 需要将没有注册路径的文件搬到dist
+### 分包里的哪些文件会被uniapp过滤掉？
+在pages.json声明了分包
+```json
+{
+  "root" : "subB",
+  "pages" : []
+}
+```
+但`pages`是空，此时如果该分包组件有在主包被引用，那么这个分包里的组件文件就会被打包到。
+如果js文件也被主包引用，那么分包里的这个js文件也会被打包到
 
 
 ## 参考文章
