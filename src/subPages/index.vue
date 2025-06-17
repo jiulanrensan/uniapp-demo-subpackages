@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import hello from './components/hello/index.vue'
+import hello from './components/subHello/index.vue'
 import { onMounted, ref } from 'vue'
 const title = ref('subPages index')
 </script>

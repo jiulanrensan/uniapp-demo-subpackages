@@ -20,15 +20,15 @@ import aaa from '@/subA/aaa/empty.vue'
 import hello from '@/pages/components/hello/index.vue'
 import share from '../../subB/share/index.vue'
 import {getGoods} from './goods'
-const coupon = require.async('@/subA/coupon/index')
-console.log('coupon', coupon)
-coupon.then((module: any) => {
-  console.log('coupon module loaded', module)
-})
+// const coupon = require.async('@/subA/coupon/index')
+// console.log('coupon', coupon)
+// coupon.then((module: any) => {
+//   console.log('coupon module loaded', module)
+// })
 const title = ref('Hello')
 onMounted(() => {
   const res = getGoods()
-  console.log('getGoods', res)
+  console.log('getGoods1', res)
 })
 </script>
 

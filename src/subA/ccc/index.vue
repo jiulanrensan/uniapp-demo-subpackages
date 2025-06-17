@@ -1,17 +1,14 @@
 <template>
   <!--  -->
   <view class="container">
-    <text>First Subpackage</text>
+    <text>ccc Subpackage</text>
     <bbb />
-    <hello />
   </view>
 </template>
 <script setup>
 import bbb from '@/pages/components/bbb/index.vue'
-import hello from '@/subPages/components/subHello/index.vue'
-import {print} from './utils'
 import {onMounted} from 'vue'
 onMounted(() => {
-  print()
+  console.log('ccc Subpackage mounted')
 })
 </script>

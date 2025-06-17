@@ -1,5 +1,5 @@
 <template>
-  <view>subPages hello</view>
+  <view>subPages hello 检查是否热更新</view>
   <third />
 </template>
 <script setup>
