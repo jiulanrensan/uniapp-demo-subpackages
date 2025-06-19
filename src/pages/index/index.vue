@@ -1,8 +1,8 @@
 <template>
   <view class="content">
-    <first />
+    <first ref="firstRef" @compLoaded="handleCompLoaded" />
     <aaa />
-    <hello />
+    <hello ref="helloRef" />
     <image class="logo" src="/static/logo.png" />
     <view class="text-area">
       <text class="title">{{ title }}</text>
@@ -13,25 +13,46 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { getCurrentInstance, onMounted, ref } from 'vue'
 import first from '@/subA/first/index.vue'
 import second from '@/subA/second/index.vue'
 import aaa from '@/subA/aaa/empty.vue'
 import hello from '@/pages/components/hello/index.vue'
 import share from '../../subB/share/index.vue'
 import {getGoods} from './goods'
+const { ctx } = getCurrentInstance()
 // const coupon = require.async('@/subA/coupon/index')
-import {getCoupon} from '@/subA/coupon/index'
+// import('@/subA/coupon/index').then((module) => {
+//   console.log('coupon module loaded', module)
+// }).catch((error) => {
+//   console.error('Error loading coupon module:', error)
+// })
 
 // console.log('coupon', coupon)
-getCoupon.then((module: any) => {
-  console.log('coupon module loaded', module)
-})
+// coupon.then((module: any) => {
+//   console.log('coupon module loaded', module)
+// })
 const title = ref('Hello')
-onMounted(() => {
+const firstRef = ref<any>(null)
+const helloRef = ref<any>(null)
+onMounted(async () => {
   const res = getGoods()
   console.log('getGoods1', res)
+  helloRef.value.open()
+  // try {
+  //   const coupon = await import('@/subA/coupon/index')
+  //   console.log('coupon module loaded', coupon)
+  // } catch (error) {
+  //   console.log('Error loading coupon module:', error)
+  // }
 })
+function handleCompLoaded() {
+  console.log('First Subpackage component loaded')
+  // console.log(ctx.$refs)
+  ctx.$refs.firstRef.open()
+  // 不能通过这种方式调用
+  // firstRef.value.open()
+}
 </script>
 
 <style>

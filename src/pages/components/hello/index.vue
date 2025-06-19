@@ -4,4 +4,9 @@
 </template>
 <script setup>
 import third from '@/subA/third/index.vue'
+defineExpose({
+  open() {
+    console.log('Hello component open')
+  }
+})
 </script>
