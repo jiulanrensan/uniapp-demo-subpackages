@@ -11,10 +11,12 @@ import bbb from '@/pages/components/bbb/index.vue'
 import hello from '@/subPages/components/subHello/index.vue'
 import {print} from './utils'
 import {onMounted} from 'vue'
-const emits = defineEmits(['compLoaded'])
+import {useAsyncComp} from '@/hooks/useAsyncComp'
+useAsyncComp()
+// const emits = defineEmits(['compLoaded'])
 onMounted(() => {
   print()
-  emits('compLoaded')
+  // emits('compLoaded')
 })
 defineExpose({
   open() {
