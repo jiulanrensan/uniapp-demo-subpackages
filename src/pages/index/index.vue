@@ -20,7 +20,7 @@ import aaa from '@/subA/aaa/empty.vue'
 import hello from '@/pages/components/hello/index.vue'
 import share from '../../subB/share/index.vue'
 import {getGoods} from './goods'
-const { ctx } = getCurrentInstance()
+const { ctx, proxy } = getCurrentInstance()
 // const coupon = require.async('@/subA/coupon/index')
 // import('@/subA/coupon/index').then((module) => {
 //   console.log('coupon module loaded', module)
@@ -49,7 +49,9 @@ onMounted(async () => {
 function handleCompLoaded() {
   console.log('First Subpackage component loaded')
   // console.log(ctx.$refs)
-  ctx.$refs.firstRef.open()
+  // 两种方式都可以
+  // ctx.$refs.firstRef.open()
+  proxy.$refs.firstRef.open()
   // 不能通过这种方式调用
   // firstRef.value.open()
 }
