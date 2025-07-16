@@ -20,18 +20,20 @@ import aaa from '@/subA/aaa/empty.vue'
 import hello from '@/pages/components/hello/index.vue'
 import share from '../../subB/share/index.vue'
 import {getGoods} from './goods'
-const { ctx, proxy } = getCurrentInstance()
-// const coupon = require.async('@/subA/coupon/index')
-// import('@/subA/coupon/index').then((module) => {
-//   console.log('coupon module loaded', module)
-// }).catch((error) => {
-//   console.error('Error loading coupon module:', error)
-// })
+import couponModule from '@/subA/coupon/index'
 
-// console.log('coupon', coupon)
-// coupon.then((module: any) => {
-//   console.log('coupon module loaded', module)
-// })
+async function loadAsyncModule(m: any) {
+  try {
+    const ret = await m
+    return ret
+  } catch (error) {
+    console.error(`Failed to load module ${module}:`, error)
+    return {}
+  }
+}
+
+
+// const { ctx, proxy } = getCurrentInstance()!
 const title = ref('Hello')
 const firstRef = ref<any>(null)
 const helloRef = ref<any>(null)
@@ -39,19 +41,20 @@ onMounted(async () => {
   const res = getGoods()
   console.log('getGoods1', res)
   helloRef.value.open()
-  // try {
-  //   const coupon = await import('@/subA/coupon/index')
-  //   console.log('coupon module loaded', coupon)
-  // } catch (error) {
-  //   console.log('Error loading coupon module:', error)
-  // }
+  try {
+    const res = await import('@/subA/coupon/index')
+    // const res = await loadAsyncModule(couponModule)
+    console.log('dynamic import', res)
+  } catch (error) {
+    console.log('Failed to load coupon module:', error)
+  }
 })
 function handleCompLoaded() {
   console.log('First Subpackage component loaded')
   // console.log(ctx.$refs)
   // 两种方式都可以
   // ctx.$refs.firstRef.open()
-  proxy.$refs.firstRef.open()
+  // proxy.$refs.firstRef.open()
   // 不能通过这种方式调用
   // firstRef.value.open()
 }
