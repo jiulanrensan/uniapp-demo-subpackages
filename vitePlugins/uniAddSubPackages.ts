@@ -2,6 +2,7 @@ import { PluginOption } from 'vite'
 import {OutputAsset} from 'rollup'
 import path from 'path'
 const appJsonName = 'app.json'
+const vendorJs = 'vendor.js'
 
 function isAppJson(fileName: string) {
   return fileName === appJsonName
@@ -130,7 +131,7 @@ export function uniAddSubPackagesPlugin(): PluginOption {
     },
     generateBundle(options, bundle) {
       // 在这里处理 uni:mp-pages-json 插件输出的文件
-      // console.log('uni:add-sub-packages generateBundle', Object.keys(bundle))
+      console.log('uni:add-sub-packages generateBundle', Object.keys(bundle))
       /**
        * 优先处理app.json
        * 然后处理其他页面和组件的json
@@ -143,8 +144,8 @@ export function uniAddSubPackagesPlugin(): PluginOption {
         handleJson((appJson as OutputAsset).source as string, appJsonName)
       }
       Object.keys(bundle).forEach(fileName => {
+        const asset = bundle[fileName]
         if (fileName.endsWith('.json') && fileName !== appJsonName) {
-          const asset = bundle[fileName]
           if (asset.type === 'asset') {
             // console.log(`Processing ${fileName}`, asset.source)
             const content = handleJson(asset.source as string, fileName)
@@ -160,7 +161,17 @@ export function uniAddSubPackagesPlugin(): PluginOption {
             //   source: content
             // })
           }  
-        }  
+        }
+        if (fileName.endsWith('.js')) {
+          if (fileName.includes(vendorJs)) return
+          // console.log(`Processing ${fileName}`, asset)
+          if (asset && asset.type !== 'chunk') return
+          const { code, imports } = asset
+          console.log(`Processing ${fileName}`, imports)
+          // 处理 js/ts 文件
+          // console.log(`Processing ${fileName}`, asset.source)
+          // console.log(`Processed ${fileName}`, content)
+        }
       })  
     }  
   }
