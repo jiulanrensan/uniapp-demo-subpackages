@@ -1,5 +1,9 @@
 import { PluginOption } from 'vite'
 import {OutputAsset} from 'rollup'
+import { parse } from '@babel/parser';
+import traverse from '@babel/traverse';
+import generate from '@babel/generator';
+import * as t from '@babel/types';
 import path from 'path'
 const appJsonName = 'app.json'
 const vendorJs = 'vendor.js'
@@ -121,17 +125,264 @@ function handleJson(content: string, key: string) {
   return parseNormalJson(content, key, subPackageList)
 }
 
+/**
+ * 获取文件扩展名
+ * @param {string} url 文件URL
+ * @returns {string} 文件扩展名（不包含点号）
+ */
+function getFileExtension(url: string) {
+  if (!url) return null
+  // 先去除查询参数
+  const [urlWithoutQuery, query] = url.split('?')
+  // 获取最后一个点号后的内容
+  const lastDotIndex = urlWithoutQuery.lastIndexOf('.')
+  if (lastDotIndex === -1) return ''
+  const extension = urlWithoutQuery.substring(lastDotIndex + 1).toLowerCase()
+  const queryParams = (query ? query.split('&').reduce((acc, param) => {
+    const [key, value] = param.split('=')
+    acc[key] = value
+    return acc
+  }, {}) : {}) as Record<string, string>
+  return {
+    extension,
+    queryParams
+  }
+}
+
+
+function isExcludePath(id: string) {
+  const excludePath = ['node_modules', 'uni_modules', 'uniComponent', 'uniPage'].some(path => id.includes(path))
+  if (excludePath) return true
+  const fileExtension = getFileExtension(id)
+  if (!fileExtension) return true
+  const { extension, queryParams } = fileExtension
+  if (extension === 'vue' && queryParams.type === 'style') {
+    return true
+  }
+  return false
+}
+
+// 路径转换函数：将路径转换为变量名
+function convertPathToVariableName(path) {
+  return path
+    .replace(/^[@./]+/, '') // 移除开头的 @、.、/ 等字符
+    .replace(/\.\./g, '') // 移除 ..
+    .replace(/[\/\\]/g, '_') // 将斜杠替换为下划线
+    .replace(/\./g, '_') // 将点替换为下划线
+    .replace(/^_+/, '') // 移除开头的下划线
+    .replace(/_+$/, ''); // 移除结尾的下划线
+}
+
+function handleUniappCode(code: string, id: string) {
+  const ast = parse(code, {
+    sourceType: 'module',
+    plugins: [
+      'jsx', 
+      'typescript',
+      'decorators',
+      'classProperties',
+      'classPrivateProperties',
+      'classPrivateMethods',
+      'dynamicImport',
+      'exportDefaultFrom',
+      'exportNamespaceFrom',
+      'importMeta',
+      'logicalAssignment',
+      'nullishCoalescingOperator',
+      'objectRestSpread',
+      'optionalCatchBinding',
+      'optionalChaining'
+    ]
+  });
+
+  // 存储命名空间导入的变量名和对应的路径变量名
+  const namespaceImports = new Map(); // key: 导入变量名, value: 路径变量名
+
+  traverse(ast, {
+    ImportDeclaration(astPath) {
+      // 获取 import 语句
+      const importNode = astPath.node;
+      
+      // 提取导入的来源 (y in "import x from y")
+      let source = importNode.source.value;
+      
+             // 处理以 '@/' 开头的路径，将其转换为相对路径
+       if (source.startsWith('@/')) {
+         // 将 @ 替换为 process.env.UNI_INPUT_DIR，并统一路径分隔符为 '/'
+         const uniInputDir = (process.env.UNI_INPUT_DIR || '').replace(/\\/g, '/');
+         const absoluteSourcePath = source.replace('@', uniInputDir);
+         
+         // 确保 id 也使用正斜杠
+         const normalizedId = id.replace(/\\/g, '/');
+         
+         // 计算相对于当前文件的路径
+         const currentFileDir = path.dirname(normalizedId);
+         const relativePath = path.relative(currentFileDir, absoluteSourcePath);
+         
+         // 将 path.relative 返回的反斜杠路径转换为正斜杠
+         const normalizedRelativePath = (relativePath.startsWith('.') ? relativePath : `./${relativePath}`).replace(/\\/g, '/');
+        console.log('normalizedId, currentFileDir', normalizedId, currentFileDir)
+         console.log('relativePath', relativePath)
+        console.log(`路径转换: ${source} -> ${normalizedRelativePath}`);
+        console.log(`当前文件: ${id}`);
+        console.log(`绝对路径: ${absoluteSourcePath}`);
+        console.log(`相对路径: ${normalizedRelativePath}`);
+        
+        // 更新 source 为相对路径
+        source = normalizedRelativePath;
+        
+        // 更新 AST 中的 source 值
+        importNode.source.value = source;
+      }
+      
+      // 处理命名空间导入 (import * as x from y)
+      const namespaceSpecifiers = importNode.specifiers
+        .filter(specifier => specifier.type === 'ImportNamespaceSpecifier')
+        .map(specifier => specifier.local.name);
+      
+      if (namespaceSpecifiers.length > 0) {
+        console.log('---'); 
+        console.log(`命名空间导入 from "${source}":`, namespaceSpecifiers);
+        
+        // 转换路径为变量名
+        const pathVariableName = convertPathToVariableName(source);
+        console.log(`路径变量名: ${pathVariableName}`);
+        
+        // 创建新的 require.async 语句
+        const newRequireStatement = t.variableDeclaration('const', [
+          t.variableDeclarator(
+            t.identifier(pathVariableName),
+            t.callExpression(
+              t.memberExpression(
+                t.identifier('require'),
+                t.identifier('async')
+              ),
+              [t.stringLiteral(source)]
+            )
+          )
+        ]);
+        
+        // 替换原来的 import 语句
+        astPath.replaceWith(newRequireStatement);
+        
+        console.log(`转换后的语句: const ${pathVariableName} = require.async('${source}')`);
+        console.log('---');
+        
+        // 记录命名空间导入的变量名和对应的路径变量名
+        namespaceSpecifiers.forEach(name => {
+          namespaceImports.set(name, pathVariableName);
+        });
+      }
+    },
+    
+    AwaitExpression(astPath) {
+      const awaitNode = astPath.node;
+      const argument = awaitNode.argument;
+      
+      // 检查 await 后面是否是标识符（变量名）
+      if (argument.type === 'Identifier') {
+        const variableName = argument.name;
+        
+        // 检查这个变量名是否是我们记录的命名空间导入
+        if (namespaceImports.has(variableName)) {
+          const pathVariableName = namespaceImports.get(variableName);
+          
+          console.log(`找到 await 语句: await ${variableName}`);
+          console.log(`对应的路径变量名: ${pathVariableName}`);
+          
+          // 创建新的 await 表达式
+          const newAwaitExpression = t.awaitExpression(
+            t.callExpression(
+              t.memberExpression(
+                t.identifier(pathVariableName),
+                t.identifier('then')
+              ),
+              [
+                t.arrowFunctionExpression(
+                  [t.objectPattern([
+                    t.objectProperty(
+                      t.identifier(variableName),
+                      t.identifier(variableName),
+                      false,
+                      true
+                    )
+                  ])],
+                  t.identifier(variableName)
+                )
+              ]
+            )
+          );
+          
+          // 替换原来的 await 表达式
+          astPath.replaceWith(newAwaitExpression);
+          
+          // 获取父级语句（通常是 VariableDeclaration 或 ExpressionStatement）
+          const parentStatement = astPath.findParent((p) => 
+            p.isVariableDeclaration() || p.isExpressionStatement()
+          );
+          
+          if (parentStatement) {
+            const statementCode = generate(parentStatement.node).code;
+            console.log(`修改后的完整语句: ${statementCode}`);
+          }
+          
+          console.log('---');
+        }
+      }
+    }
+  })
+
+  // 生成转换后的代码
+  const output = generate(ast, {
+    retainLines: false,
+    compact: false,
+    comments: false
+  });
+
+  // console.log('\n=== 转换后的完整代码 ===');
+  // console.log(output.code);
+  return output.code
+}
+
 export function uniAddSubPackagesPlugin(): PluginOption {
   return {
     name: 'uni:add-sub-packages',
-    enforce: 'pre',
+    enforce: 'post',
     apply() {
       // console.log('uni:add-sub-packages apply', process.env.UNI_PLATFORM)
       return ['mp-weixin'].includes(process.env.UNI_PLATFORM!)
     },
+    /**
+     * https://github.com/dcloudio/uni-app/blob/next/packages/vite-plugin-uni/src/config/resolve.ts
+     */
+    transform(code, id) {
+      /**
+       * script设置了lang=ts的时候
+       * pages/index/index.vue 文件会解析为三个：
+       * pages/index/index.vue,
+       * pages/index/index.vue?vue&type=style&index=0&lang.css
+       * pages/index/index.vue?vue&type=script&setup=true&lang.ts
+       * 
+       * script 没有设置lang或setup的时候，只会有pages/index/index.vue
+       */
+      /**
+       * id要排除掉node_modules
+       */
+      if (isExcludePath(id)) return
+      console.log('uni:add-sub-packages transform', id)
+      // if (id.includes('components/hello/index')) {
+      //   console.log('uni:add-sub-packages transform', id, code)
+      // }
+      const newCode = handleUniappCode(code, id)
+      // if (id.includes('components/hello/index')) {
+      //   console.log('uni:add-sub-packages transform', id, newCode)
+      // }
+      return newCode
+      // return null
+    },
     generateBundle(options, bundle) {
       // 在这里处理 uni:mp-pages-json 插件输出的文件
-      console.log('uni:add-sub-packages generateBundle', Object.keys(bundle))
+      // console.log('uni:add-sub-packages generateBundle', Object.keys(bundle))
       /**
        * 优先处理app.json
        * 然后处理其他页面和组件的json
@@ -161,16 +412,6 @@ export function uniAddSubPackagesPlugin(): PluginOption {
             //   source: content
             // })
           }  
-        }
-        if (fileName.endsWith('.js')) {
-          if (fileName.includes(vendorJs)) return
-          // console.log(`Processing ${fileName}`, asset)
-          if (asset && asset.type !== 'chunk') return
-          const { code, imports } = asset
-          console.log(`Processing ${fileName}`, imports)
-          // 处理 js/ts 文件
-          // console.log(`Processing ${fileName}`, asset.source)
-          // console.log(`Processed ${fileName}`, content)
         }
       })  
     }  

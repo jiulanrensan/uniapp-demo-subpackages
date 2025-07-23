@@ -20,7 +20,7 @@ import aaa from '@/subA/aaa/empty.vue'
 import hello from '@/pages/components/hello/index.vue'
 import share from '../../subB/share/index.vue'
 import {getGoods} from './goods'
-import couponModule from '@/subA/coupon/index'
+import * as couponModule from '@/subA/coupon/index'
 
 async function loadAsyncModule(m: any) {
   try {
@@ -40,11 +40,11 @@ const helloRef = ref<any>(null)
 onMounted(async () => {
   const res = getGoods()
   console.log('getGoods1', res)
-  helloRef.value.open()
+  // helloRef.value.open()
   try {
-    const res = await import('@/subA/coupon/index')
     // const res = await loadAsyncModule(couponModule)
-    console.log('dynamic import', res)
+    const { getCoupon } = await couponModule
+    console.log('getCoupon', getCoupon())
   } catch (error) {
     console.log('Failed to load coupon module:', error)
   }
