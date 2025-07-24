@@ -1,3 +1,3 @@
 export function getCoupon() {
-  console.log('getCoupon')
+  console.log('console.log getCoupon')
 }

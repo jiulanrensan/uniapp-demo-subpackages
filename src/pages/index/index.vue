@@ -44,7 +44,8 @@ onMounted(async () => {
   try {
     // const res = await loadAsyncModule(couponModule)
     const { getCoupon } = await couponModule
-    console.log('getCoupon', getCoupon())
+    console.log('getCoupon', getCoupon)
+    getCoupon()
   } catch (error) {
     console.log('Failed to load coupon module:', error)
   }
