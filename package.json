@@ -2,16 +2,6 @@
   "name": "uni-preset-vue",
   "version": "0.0.0",
   "scripts": {
-    "dev:custom": "uni -p",
-    "dev:h5": "uni",
-    "dev:h5:ssr": "uni --ssr",
-    "dev:mp-alipay": "uni -p mp-alipay",
-    "dev:mp-baidu": "uni -p mp-baidu",
-    "dev:mp-jd": "uni -p mp-jd",
-    "dev:mp-kuaishou": "uni -p mp-kuaishou",
-    "dev:mp-lark": "uni -p mp-lark",
-    "dev:mp-qq": "uni -p mp-qq",
-    "dev:mp-toutiao": "uni -p mp-toutiao",
     "dev:mp-weixin": "uni -p mp-weixin",
     "dev:mp-xhs": "uni -p mp-xhs",
     "dev:quickapp-webview": "uni -p quickapp-webview",
@@ -65,5 +55,6 @@
     "typescript": "^4.9.4",
     "vite": "5.2.8",
     "vue-tsc": "^1.0.24"
-  }
+  },
+  "packageManager": "yarn@4.9.0+sha512.5f5f00843eae735dfab6f0442524603e987ceca55e98b36eb0120f4e58908e5b1406545321e46627dca97d15d562f23dc13fb96cabd4e6bc92d379f619001e4e"
 }
