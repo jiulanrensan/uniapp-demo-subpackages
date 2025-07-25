@@ -1,5 +1,4 @@
 import { PluginOption } from 'vite'
-import {OutputAsset} from 'rollup'
 import { parse } from '@babel/parser';
 import traverse from '@babel/traverse';
 import generate from '@babel/generator';
@@ -87,10 +86,13 @@ function parseNormalJson(content: string, key: string, subPackageList: string[])
   }
 }
 
-function getDirname(filePath: string) {
-  const list = filePath.split('/')
-  list.pop()
-  return list.join('/')
+function getDirname(filePath) {
+	// const list = filePath.split('/')
+	// list.pop()
+	// const newPath = list.join('/')
+	const newPath = path.dirname(filePath)
+	// console.log('filePath, newPath', filePath, newPath)
+	return newPath
 }
 
 function handleIsSamePackage({packagePath, pathList}: {packagePath: string, pathList: string[]}) {
@@ -136,6 +138,33 @@ function isExcludePath(id: string) {
   return false
 }
 
+/**
+ * 检查引用的js是否在分包中，且与当前组件/页面不属于同一个包
+ * 是 返回 true
+ * 否 返回 false
+ */
+function checkJSRequire(currentFileId, requirePath) {
+	// console.log(`找到 require 语句: const ${variableName} = require('${requirePath}')`)
+	const dirname = getDirname(currentFileId)
+	const currentAbsolutePath = path.resolve(currentFileId)
+	const absoluteJsPath = path.resolve(dirname, requirePath)
+	// console.log(`引入文件的绝对路径: ${absoluteJsPath}`)
+	// console.log(`当前文件的绝对路径: ${currentAbsolutePath}`)
+	// 如果不是分包组件，则不处理
+	const { bool, subPackagePath } = hanldeIsSubPackageComponent(absoluteJsPath, subPackageList)
+	// console.log(`是否是分包组件: ${bool}`)
+	if (!bool) return false
+	// console.log(`分包路径: ${subPackagePath}`)
+	// 如果当前组件/页面与引入的js属于同一个包，则不处理
+	const isSamePackage = handleIsSamePackage({
+		packagePath: subPackagePath,
+		pathList: [absoluteJsPath, currentAbsolutePath]
+	})
+	// console.log(`是否是同一个包: ${isSamePackage}`)
+	if (isSamePackage) return false
+	return true
+}
+
 function handleUniappCode(code: string, id: string) {
   const ast = parse(code, {
     // @ts-ignore
@@ -176,30 +205,39 @@ function handleUniappCode(code: string, id: string) {
         const variableName = node.id.name;
         const requirePath = node.init.arguments[0].value;
         if (isExcludePath(requirePath)) return
-        // process.env.UNI_INPUT_DIR
-        console.log('---');
-        console.log(`找到 require 语句: const ${variableName} = require('${requirePath}')`);
-        const dirname = getDirname(id)
-        const currentAbsolutePath = path.resolve(id)
-        const absoluteJsPath = path.resolve(dirname, requirePath)
-        console.log(`引入文件的绝对路径: ${absoluteJsPath}`)
-        console.log(`当前文件的绝对路径: ${currentAbsolutePath}`)
-        // 如果不是分包组件，则不处理
-        const { bool, subPackagePath } = hanldeIsSubPackageComponent(absoluteJsPath, (subPackageList as string[]))
-        console.log(`是否是分包组件: ${bool}`)
-        if (!bool) return
-        console.log(`分包路径: ${subPackagePath}`)
-        // 如果当前组件/页面与引入的js属于同一个包，则不处理
-        const isSamePackage = handleIsSamePackage({ packagePath: subPackagePath, pathList: [absoluteJsPath, currentAbsolutePath] })
-        console.log(`是否是同一个包: ${isSamePackage}`)
-        if (isSamePackage) return
-                 // 记录 require 模块信息和 AST 路径
-         requireModules.set(variableName, requirePath);
-         requirePaths.set(variableName, astPath);
-         console.log('---', 'variableName', variableName, 'requirePath', requirePath);
+        const bool = checkJSRequire(id, requirePath)
+				if (!bool) return
+        // 记录 require 模块信息和 AST 路径
+        requireModules.set(variableName, requirePath);
+        requirePaths.set(variableName, astPath);
+        console.log('---', 'variableName', variableName, 'requirePath', requirePath);
         
       }
     },
+    /**
+     * 低版本的uniapp会莫名其妙的 require全局js文件，尤其是引入分包的js文件，会导致报错
+     * 所以这里会把引入分包的js require 语句删除
+     * 复现版本："@dcloudio/uni-app": "3.0.0-3061520221228001"
+     * 在最新版本(@dcloudio/uni-app": "3.0.0-4030620241128001)的输出文件中，已经没有require全局js文件了
+     */
+    ExpressionStatement(path) {
+			const node = path.node
+			if (
+				node.expression.type === 'CallExpression' &&
+				node.expression.callee.type === 'Identifier' &&
+				node.expression.callee.name === 'require' &&
+				node.expression.arguments.length === 1 &&
+				node.expression.arguments[0].type === 'StringLiteral'
+			) {
+				const requirePath = node.expression.arguments[0].value
+				if (requirePath.includes('wxbarcode')) {
+					console.log(`${id}, 打印 require('${requirePath}')`)
+				}
+				const bool = checkJSRequire(id, requirePath)
+				if (!bool) return
+				path.remove()
+			}
+		},
     
     AwaitExpression(astPath) {
       const awaitNode = astPath.node;
